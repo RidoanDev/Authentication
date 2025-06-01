@@ -413,14 +413,14 @@
             authDomain: "zpad-94d2a.firebaseapp.com",
             databaseURL: "https://zpad-94d2a-default-rtdb.firebaseio.com",
             projectId: "zpad-94d2a",
-            storageBucket: "zpad-94d2a.firebasestorage.app",
+            storageBucket: "zpad-94d2a.appspot.com",
             messagingSenderId: "45005095449",
             appId: "1:45005095449:web:73e0bdd7b2e3056915a088",
             measurementId: "G-2J08PLC917"
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
         // DOM Elements
@@ -598,21 +598,37 @@
         });
 
         // Sign in with Google
-        googleSignIn.addEventListener('click', () => {
+        googleSignIn.addEventListener('click', (e) => {
+            e.preventDefault();
             const provider = new firebase.auth.GoogleAuthProvider();
             
             clearMessage();
             
             auth.signInWithPopup(provider)
                 .then((result) => {
-                    // Signed in with Google
+                    // This gives you a Google Access Token
+                    const credential = result.credential;
+                    const token = credential.accessToken;
+                    
+                    // The signed-in user info
+                    const user = result.user;
+                    
                     showMessage('Successfully signed in with Google! Redirecting...', 'success');
                     setTimeout(() => {
                         window.location.href = 'https://bobdo.vercel.app';
                     }, 1500);
                 })
                 .catch((error) => {
-                    showMessage(getErrorMessage(error.code), 'error');
+                    // Handle Errors here
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    // The email of the user's account used
+                    const email = error.email;
+                    // The AuthCredential type that was used
+                    const credential = error.credential;
+                    
+                    console.error('Google sign-in error:', error);
+                    showMessage(getErrorMessage(errorCode), 'error');
                 });
         });
 
@@ -634,6 +650,7 @@
         function showMessage(message, type) {
             authMessage.textContent = message;
             authMessage.className = 'message ' + type;
+            authMessage.style.display = 'block';
         }
 
         // Helper function to clear messages
@@ -668,6 +685,16 @@
                     return 'Network error. Please check your connection.';
                 case 'auth/requires-recent-login':
                     return 'This operation requires recent authentication. Please log in again.';
+                case 'auth/account-exists-with-different-credential':
+                    return 'An account already exists with the same email but different sign-in credentials.';
+                case 'auth/auth-domain-config-required':
+                    return 'Authentication domain configuration required.';
+                case 'auth/cancelled-popup-request':
+                    return 'Only one popup request is allowed at a time.';
+                case 'auth/popup-blocked':
+                    return 'Popup was blocked by the browser. Please allow popups for this site.';
+                case 'auth/unauthorized-domain':
+                    return 'This domain is not authorized for OAuth operations.';
                 default:
                     return 'An error occurred. Please try again.';
             }
