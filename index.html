@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Authentication</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #000000;
+            --secondary: #ffffff;
+            --accent: #333333;
+            --light-gray: #f5f5f5;
+            --medium-gray: #e0e0e0;
+            --dark-gray: #212121;
+            --error: #d32f2f;
+            --success: #388e3c;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        body {
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: var(--primary);
+        }
+        
+        .auth-container {
+            background-color: var(--secondary);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            width: 420px;
+            overflow: hidden;
+            animation: fadeIn 0.3s ease-out;
+            position: relative;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .auth-header {
+            padding: 28px;
+            text-align: center;
+            background-color: var(--primary);
+            color: var(--secondary);
+            position: relative;
+        }
+        
+        .auth-header h2 {
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 22px;
+        }
+        
+        .auth-header p {
+            font-weight: 300;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .auth-content {
+            padding: 28px;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--accent);
+            transition: all 0.2s;
+            position: relative;
+            font-size: 15px;
+        }
+        
+        .auth-tab.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .auth-tab.active:after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--dark-gray);
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 6px;
+            font-size: 15px;
+            transition: all 0.2s;
+            background-color: var(--secondary);
+            color: var(--primary);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            margin-top: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--secondary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--dark-gray);
+        }
+        
+        .btn-google {
+            background-color: var(--secondary);
+            color: var(--dark-gray);
+            border: 1px solid var(--medium-gray);
+            margin-bottom: 16px;
+        }
+        
+        .btn-google:hover {
+            background-color: var(--light-gray);
+        }
+        
+        .btn-google i {
+            margin-right: 10px;
+            color: var(--dark-gray);
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--accent);
+        }
+        
+        .auth-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .message {
+            font-size: 14px;
+            margin-top: 12px;
+            text-align: center;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .error {
+            background-color: rgba(211, 47, 47, 0.1);
+            color: var(--error);
+            display: block;
+        }
+        
+        .success {
+            background-color: rgba(56, 142, 60, 0.1);
+            color: var(--success);
+            display: block;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--secondary);
+            font-size: 22px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--accent);
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: var(--accent);
+            font-size: 14px;
+        }
+        
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        .divider::before {
+            margin-right: 16px;
+        }
+        
+        .divider::after {
+            margin-left: 16px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .terms {
+            font-size: 12px;
+            color: var(--accent);
+            margin-top: 16px;
+            text-align: center;
+        }
+        
+        .terms a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .terms a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container" id="authContainer">
+        <button class="close-btn" id="closeBtn">&times;</button>
+        <div class="auth-header">
+            <h2>Account Authentication</h2>
+            <p>Secure access to your dashboard</p>
+        </div>
+        <div class="auth-content">
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="signin">Sign In</div>
+                <div class="auth-tab" data-tab="signup">Create Account</div>
+            </div>
+
+            <div class="message" id="authMessage"></div>
+
+            <button class="btn btn-google" id="googleSignIn">
+                <i class="fab fa-google"></i> Continue with Google
+            </button>
+
+            <div class="divider">
+                <span>or use email</span>
+            </div>
+
+            <form id="signinForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="signinEmail">Email Address</label>
+                    <input type="email" id="signinEmail" class="form-control" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="signinPassword">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="signinPassword" class="form-control" placeholder="Enter your password" required>
+                        <span class="toggle-password" id="toggleSignInPassword">
+                            <i class="far fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="auth-footer">
+                    <a href="#" id="forgotPassword">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn btn-primary" id="signInBtn">
+                    <span id="signInText">Sign In</span>
+                    <div class="loading" id="signInLoading" style="display: none;"></div>
+                </button>
+            </form>
+
+            <form id="signupForm" class="auth-form">
+                <div class="form-group">
+                    <label for="signupEmail">Email Address</label>
+                    <input type="email" id="signupEmail" class="form-control" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="signupPassword" class="form-control" placeholder="Create a password (min 6 chars)" required>
+                        <span class="toggle-password" id="toggleSignUpPassword">
+                            <i class="far fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="signupConfirmPassword">Confirm Password</label>
+                    <div class="password-container">
+                        <input type="password" id="signupConfirmPassword" class="form-control" placeholder="Confirm your password" required>
+                        <span class="toggle-password" id="toggleSignUpConfirmPassword">
+                            <i class="far fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="terms">
+                    By creating an account, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                </div>
+                <button type="submit" class="btn btn-primary" id="signUpBtn">
+                    <span id="signUpText">Create Account</span>
+                    <div class="loading" id="signUpLoading" style="display: none;"></div>
+                </button>
+            </form>
+
+            <form id="forgotPasswordForm" class="auth-form">
+                <div class="form-group">
+                    <label for="resetEmail">Email Address</label>
+                    <input type="email" id="resetEmail" class="form-control" placeholder="your@email.com" required>
+                </div>
+                <div class="auth-footer">
+                    <a href="#" id="backToSignIn">Back to Sign In</a>
+                </div>
+                <button type="submit" class="btn btn-primary" id="resetPasswordBtn">
+                    <span id="resetText">Reset Password</span>
+                    <div class="loading" id="resetLoading" style="display: none;"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCf-1ZjhvhiK5PHB6d-sAWhYMGVSUunOT8",
+            authDomain: "zpad-94d2a.firebaseapp.com",
+            databaseURL: "https://zpad-94d2a-default-rtdb.firebaseio.com",
+            projectId: "zpad-94d2a",
+            storageBucket: "zpad-94d2a.firebasestorage.app",
+            messagingSenderId: "45005095449",
+            appId: "1:45005095449:web:73e0bdd7b2e3056915a088",
+            measurementId: "G-2J08PLC917"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // DOM Elements
+        const authContainer = document.getElementById('authContainer');
+        const closeBtn = document.getElementById('closeBtn');
+        const tabs = document.querySelectorAll('.auth-tab');
+        const forms = document.querySelectorAll('.auth-form');
+        const signinForm = document.getElementById('signinForm');
+        const signupForm = document.getElementById('signupForm');
+        const forgotPasswordLink = document.getElementById('forgotPassword');
+        const backToSignIn = document.getElementById('backToSignIn');
+        const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+        const googleSignIn = document.getElementById('googleSignIn');
+        const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+        const authMessage = document.getElementById('authMessage');
+
+        // Form buttons and loading indicators
+        const signInBtn = document.getElementById('signInBtn');
+        const signUpBtn = document.getElementById('signUpBtn');
+        const signInText = document.getElementById('signInText');
+        const signUpText = document.getElementById('signUpText');
+        const resetText = document.getElementById('resetText');
+        const signInLoading = document.getElementById('signInLoading');
+        const signUpLoading = document.getElementById('signUpLoading');
+        const resetLoading = document.getElementById('resetLoading');
+
+        // Password toggle elements
+        const toggleSignInPassword = document.getElementById('toggleSignInPassword');
+        const toggleSignUpPassword = document.getElementById('toggleSignUpPassword');
+        const toggleSignUpConfirmPassword = document.getElementById('toggleSignUpConfirmPassword');
+        const signinPassword = document.getElementById('signinPassword');
+        const signupPassword = document.getElementById('signupPassword');
+        const signupConfirmPassword = document.getElementById('signupConfirmPassword');
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and forms
+                tabs.forEach(t => t.classList.remove('active'));
+                forms.forEach(f => f.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding form
+                tab.classList.add('active');
+                const formId = `${tab.dataset.tab}Form`;
+                document.getElementById(formId).classList.add('active');
+                
+                // Clear any messages
+                clearMessage();
+            });
+        });
+
+        // Forgot password link
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            forms.forEach(f => f.classList.remove('active'));
+            forgotPasswordForm.classList.add('active');
+            clearMessage();
+        });
+
+        // Back to sign in from forgot password
+        backToSignIn.addEventListener('click', (e) => {
+            e.preventDefault();
+            forms.forEach(f => f.classList.remove('active'));
+            signinForm.classList.add('active');
+            tabs[0].classList.add('active');
+            tabs[1].classList.remove('active');
+            clearMessage();
+        });
+
+        // Close authentication container
+        closeBtn.addEventListener('click', () => {
+            authContainer.style.display = 'none';
+        });
+
+        // Toggle password visibility
+        toggleSignInPassword.addEventListener('click', () => {
+            const type = signinPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            signinPassword.setAttribute('type', type);
+            toggleSignInPassword.innerHTML = type === 'password' ? '<i class="far fa-eye"></i>' : '<i class="far fa-eye-slash"></i>';
+        });
+
+        toggleSignUpPassword.addEventListener('click', () => {
+            const type = signupPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            signupPassword.setAttribute('type', type);
+            toggleSignUpPassword.innerHTML = type === 'password' ? '<i class="far fa-eye"></i>' : '<i class="far fa-eye-slash"></i>';
+        });
+
+        toggleSignUpConfirmPassword.addEventListener('click', () => {
+            const type = signupConfirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            signupConfirmPassword.setAttribute('type', type);
+            toggleSignUpConfirmPassword.innerHTML = type === 'password' ? '<i class="far fa-eye"></i>' : '<i class="far fa-eye-slash"></i>';
+        });
+
+        // Sign in with email/password
+        signinForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signinEmail').value;
+            const password = document.getElementById('signinPassword').value;
+            
+            showLoading(signInBtn, signInText, signInLoading);
+            clearMessage();
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed in successfully
+                    showMessage('Successfully signed in! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'https://bobdo.vercel.app';
+                    }, 1500);
+                })
+                .catch((error) => {
+                    showMessage(getErrorMessage(error.code), 'error');
+                })
+                .finally(() => {
+                    hideLoading(signInBtn, signInText, signInLoading);
+                });
+        });
+
+        // Sign up with email/password
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            
+            showLoading(signUpBtn, signUpText, signUpLoading);
+            clearMessage();
+            
+            if (password !== confirmPassword) {
+                showMessage('Passwords do not match', 'error');
+                hideLoading(signUpBtn, signUpText, signUpLoading);
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters', 'error');
+                hideLoading(signUpBtn, signUpText, signUpLoading);
+                return;
+            }
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed up successfully
+                    showMessage('Account created successfully! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'https://bobdo.vercel.app';
+                    }, 1500);
+                })
+                .catch((error) => {
+                    showMessage(getErrorMessage(error.code), 'error');
+                })
+                .finally(() => {
+                    hideLoading(signUpBtn, signUpText, signUpLoading);
+                });
+        });
+
+        // Reset password
+        forgotPasswordForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            
+            showLoading(resetPasswordBtn, resetText, resetLoading);
+            clearMessage();
+            
+            auth.sendPasswordResetEmail(email)
+                .then(() => {
+                    showMessage('Password reset email sent. Please check your inbox.', 'success');
+                })
+                .catch((error) => {
+                    showMessage(getErrorMessage(error.code), 'error');
+                })
+                .finally(() => {
+                    hideLoading(resetPasswordBtn, resetText, resetLoading);
+                });
+        });
+
+        // Sign in with Google
+        googleSignIn.addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            
+            clearMessage();
+            
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    // Signed in with Google
+                    showMessage('Successfully signed in with Google! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'https://bobdo.vercel.app';
+                    }, 1500);
+                })
+                .catch((error) => {
+                    showMessage(getErrorMessage(error.code), 'error');
+                });
+        });
+
+        // Helper function to show loading state
+        function showLoading(button, textElement, loadingElement) {
+            textElement.style.display = 'none';
+            loadingElement.style.display = 'block';
+            button.disabled = true;
+        }
+
+        // Helper function to hide loading state
+        function hideLoading(button, textElement, loadingElement) {
+            textElement.style.display = 'block';
+            loadingElement.style.display = 'none';
+            button.disabled = false;
+        }
+
+        // Helper function to show messages
+        function showMessage(message, type) {
+            authMessage.textContent = message;
+            authMessage.className = 'message ' + type;
+        }
+
+        // Helper function to clear messages
+        function clearMessage() {
+            authMessage.textContent = '';
+            authMessage.className = 'message';
+            authMessage.style.display = 'none';
+        }
+
+        // Helper function to get user-friendly error messages
+        function getErrorMessage(errorCode) {
+            switch (errorCode) {
+                case 'auth/invalid-email':
+                    return 'Please enter a valid email address.';
+                case 'auth/user-disabled':
+                    return 'This account has been disabled.';
+                case 'auth/user-not-found':
+                    return 'No account found with this email.';
+                case 'auth/wrong-password':
+                    return 'Incorrect password. Please try again.';
+                case 'auth/email-already-in-use':
+                    return 'This email is already in use by another account.';
+                case 'auth/weak-password':
+                    return 'Password should be at least 6 characters.';
+                case 'auth/operation-not-allowed':
+                    return 'This operation is not allowed.';
+                case 'auth/too-many-requests':
+                    return 'Too many requests. Please try again later.';
+                case 'auth/popup-closed-by-user':
+                    return 'Sign in was canceled.';
+                case 'auth/network-request-failed':
+                    return 'Network error. Please check your connection.';
+                case 'auth/requires-recent-login':
+                    return 'This operation requires recent authentication. Please log in again.';
+                default:
+                    return 'An error occurred. Please try again.';
+            }
+        }
+
+        // Show the auth container (can be called from other scripts)
+        function showAuth() {
+            authContainer.style.display = 'block';
+        }
+
+        // Check auth state and redirect if already logged in
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                window.location.href = 'https://bobdo.vercel.app';
+            }
+        });
+
+        // Show auth container by default
+        window.addEventListener('load', () => {
+            showAuth();
+        });
+    </script>
+</body>
+</html>
